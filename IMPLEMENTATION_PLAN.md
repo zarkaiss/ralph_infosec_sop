@@ -1,0 +1,23 @@
+- [x] Initialize git repository for cybersecurity agent SOP collection
+- [x] Create directory structure matching `**/*.sop.md` glob pattern requirement
+- [x] Draft `recon-enumeration.sop.md` with required overview section describing task purpose
+- [x] Define parameters for Recon SOP using lowercase_underscore naming convention
+- [x] Implement parameter acquisition logic requiring all inputs upfront in single prompt
+- [x] Draft Step 1 of Recon SOP focusing on target identification and enumeration
+- [x] Add RFC2119 constraints to Recon SOP steps (MUST, SHOULD, MAY)
+- [x] Add context explanations for negative constraints (MUST NOT) in Recon SOP
+- [x] Draft `vulnerability-exploitation.sop.md` with required overview section describing task purpose
+- [x] Define parameters for Exploit SOP including optional defaults and descriptions
+- [x] Implement Step 2 of Exploit SOP for payload delivery verification and execution
+- [x] Add conditional logic constraints to Exploit SOP steps based on vulnerability type
+- [x] Draft `lateral-pivoting.sop.md` with required overview section describing task purpose
+- [x] Define parameters for Pivot SOP including file path inputs for artifacts
+- [x] Implement Step 3 of Pivot SOP for credential harvesting and lateral movement
+- [x] Add troubleshooting section to all agent SOPs for common issues
+- [x] Create examples section for each SOP demonstrating expected input and output
+- [x] Implement automated validation script for `.sop.md` format compliance checking
+- [x] Run linting checks against generated SOP files for RFC2119 keyword usage
+- [x] Review all SOPs for security risk mitigation instructions within constraints
+- [x] Document agent interaction protocols with users in SOP headers and steps
+- [x] Finalize metadata section (priority, version) for all SOPs at bottom of file
+- [x] Commit initial set of compliant agent SOPs to repository with version control

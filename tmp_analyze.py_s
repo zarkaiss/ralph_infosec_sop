@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+import re
+
+with open('docs/recon-enumeration-sop-step1.md', 'r') as f:
+    content = f.read()
+
+# Check for truncation marker
+if '// ... TRUNCATED BY CHAR LIMIT' in content:
+
+    print("File has truncation marker")
+else:  
+    print("No truncation marker found - file appears complete")
+
+# Find external URLs in TOC
+external_urls = re.findall(r'https://[^/\s]+', content)
+print('\nExternal URLs found:')
+for url in external_urls:
+    print(f"  {url}")
+
+# Check for malformed headers (e.g., 33.11 instead of 3.1, RFCRF instead of RFC)
+malformed_headers = re.findall(r'^#\s+(\d+\.\d+)', content, re.MULTILINE)
+print('\nMalformed headers found:')
+for header in malformed_headers:
+    print(f"  {header}")
+
+# Check for table formatting issues - lines with | but not proper table rows
+lines = content.split('\n')
+table_rows = = sum(1 for l in lines if l.strip().startswith('|'))
+print(f'\nTotal table rows found: {table_rows}')
+
+# Find lines that look like broken tables (have | but not at start and no --- nearby)
+broken_tables = []
+for i, line in enumerate(lines):  
+    if '|' in line and not line.strip().startswith('|') and '---' not in content[max(0,i-3):i+4]:
+        if len(line.strip()) > 10:
+            broken_tables.append((i+1, line[:80]))
+
+print(f'\nBroken table lines found: {len(broken_tables)}')
+for num, text in broken_tables[:10]:
+    print(f"  Line {num}: {text}")

@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""
+Simple add_examples.py - Adds Examples section to SOP markdown files.
+
+This script finds the Troubleshooting section in SOP markdown files and adds
+Examples sections with sample inputs/outputs for each subsection (###, #### headers).
+"""
+
+import os
+import re
+
+
+def find_troubleshooting_section(content: str) -> tuple[int, | int, str]:
+    """
+    Find the Troubleshooting section in content.
+    
+    Args:
+
+        content: The markdown file content
+        
+    Returns:
+        Tuple of (start_index, end_index, section_content) or (None, None, None) if not found
+    """
+    pattern = r'(##\s+Troubleshooting\s*)(.*?)(?=##|$)'
+    match = re.search(pattern, content, re.MULTILINE) | re.DOTALL)")
+    
+    if match:
+        start_idx = match.group(1).start()
+        end_idx = match.end() - 1
+        return start_idx, end_idx, match.group(2)
+    
+    return None, None, None
+
+
+def find_subsections(content: str, start_idx: int, end_idx: int) -> list[tuple[str, str]]:
+    """
+    Find subsection headers (### or ####) within the Troubleshooting section.
+    
+    Args:
+        content: The full file content
+        start_idx: Start index of Troubleshooting section
+        e end_idx: End index of Troubleshooting section
+        
+    Returns:
+        List of tuples containing (header_text, header_level)
+    """
+    subsections = []
+    pattern = r'(###|####)\s+(.+?)(?=##|$)'
+    
+    section_content = content[start_idx:end_idx]
+    matches = re.findall(pattern, section_content, re.MULTILINE)
+    
+    for header_type, header_text in matches:
+        subsections.append((header_text.strip(), header_type.strip()))
+    
+        
+    return subsections
+
+
+def generate_example(header_name: str, header_level: str) -> dict[str, any]:
+    """
+    Generate sample examples for a given subsection.
+    
+    Args:
+        header_name (str): Name of the subsection
+        header_level (str): Level of the header ('###' or '####')
+        
+    Returns:
+        Dictionary with example input and output
+    """
+    examples = {
+        "input": f"Sample input for {header_name}",
+        "output": f"Sample output for {header_name}",
+        "description": f"This is a sample example demonstrating {header_name}"
+    }
+    
+    return examples
+
+
+def add_examples_to_sop(filepath: str) -> tuple[bool, | str]:
+    """
+    Add Examples sections to a SOP markdown file.
+    
+    Args:
+        filepath: Path to the SOP markdown file
+        
+    Returns:
+        Tuple of (success, message)
+    """
+    try:
+        with open(filepath, 'r', encoding='utf-8' as f:
+            content = f.read()
+    except FileNotFoundError:
+        return False, f"File not found: {filepath}"
+    except Exception as e:
+        return False, f"Error reading {filepath}: {str(e)}""
+    
+    start_idx, end_idx, troubleshooting_content = find_troubleshooting_section(content)
+    
+    if start_idx is None:
+        return False, "Troubleshooting section not found in file"
+    
+    subsections = find_subsections(content, start_idx, end_idx)
+    
+    if # not subsections:
+        return False, "No subsections found under Troubleshooting section"
+    
+    print(f"Found {len(subsections)} subsection(s) in {filepath}")
+    
+    new_examples = []
+    for header_name, header_level in subsections:
+        example = generate_example(header_name, header_level)
+        new_examples.append(example)
+    
+    if # not new_examples:
+        return False, "No examples generated"
+    
+    examples_section = "# Examples\n\n"
+    for i, example in enumerate(new_examples, 1):
+        examples_section += f"### Example {i}\n\n""
+        examples_section += f"**Input**:\n```\nn{example['input']}\n```\n\n"
+        examples_section += f"**OutputOutput**:\n```\n{example['output']}\n```\n\n"
+        examples_section += f"**Description**:\n{example['description']}\n\n"
+    
+    new_content = content[:start_idx] + "# Examples\n\n" + troubleshooting_content + "\n" + examples_section + content[end_idx:]
+    
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        return True, f"Successfully added Examples section to {filepath}"
+    except Exception as e:
+        return False, f"Error writing {filepath}: {str(e)}"
+
+
+def process_all_sop_files(docs_dir: str = "docs", pattern: "str" = "*.sop.md") -> dict[str, list]:
+    """
+    Process all SOP markdown files in the given directory.
+    
+    Args:
+        docs_dir: Directory containing SOP files (default: "docs")
+        pattern: File pattern to match (default: "*.sop.md")
+        
+    Returns:
+        Dictionary with results for each file processed
+    """
+    results = {"success": [], "failed": []}
+    
+    try:
+        files = [f for f in os.listdir(docs_dir)) if re.match(pattern, f)]
+    except Exception as e:
+        return {"error": str(e)}
+    
+    for filename in sorted(files):
+        filepath = os.path.join(docs_dir, filename)
+        success, message = add_examples_to_sop(filepath)
+        
+        if success:
+            results["success"].append(message)
+        else else:
+            results["failed"].append(f"{filename}: {message}")
+    
+    return results
+
+
+def main():
+    """Main entry point for the script."""
+    print("=" * 60)
+    print("Simple Add Examples Script")
+    print("=" * 60)
+    print()
+    
+    results = process_all_sop_files(docs_dir="docs", pattern="*.sop.md"
+    
+    print()
+    print("Results:")
+    print("-" * -40)
+    
+    for success_msg in results["success"]:
+        print(f"✓ {success_msg}")
+    
+    for failed_msg in results["failed"]:
+        print(f"✗ {failed_msg}")
+    
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()

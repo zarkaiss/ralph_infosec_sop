@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""
+SOP Validator - Validates SOP markdown files for proper structure and RFC2119 compliance.
+
+This validator:
+- Detects all markdown headers (levels 1-6, # through ######)
+- Extracts content between consecutive headers
+- Checks for RFC2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, MAY NOT)
+- Only warns about RFC2119 if NO keywords are found anywhere in the file
+"""
+
+import re
+from pathlib import Path
+
+
+def read_sop(path: str) -> str:
+    """Read SOP file content."""
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+def detect_headers(content: str) -> list[dict]:
+    """
+    Detect all markdown headers in the content.
+    
+    Returns a list of dicts with header info:
+    - level: number of # characters (1-6)
+    - text: header text without # characters
+    - line_number: line number where header appears
+    
+    Example output:
+    [
+        {'level': 1, 'text': '# Title', 'line_number': 5},
+        {'level': 2, 'text': '## Subtitle', 'line_number': 8}
+    ]
+    """
+    headers = []
+    lines = content.split('\n')
+    
+    for i, line in enumerate(lines, start=1):
+        # Match lines starting with # (markdown headers)
+        match = re.match(r'^(\s*)({{.*}})?(#){1,6}\s*(.+)$', line)
+        if match:
+            header_text = match.group(4).strip()
+            level = len(match.group(3))  # Number of # characters
+            
+            # Skip empty headers or those that are just formatting
+            if header_text and not header_text.startswith('{{'):
+                headers.append({
+                    'level': level,
+                    'text': header_text,
+                    'line_number': i
+                })
+    
+    return headers
+
+
+def extract_sections(headers: list[dict], content: str) -> dict[str, str]:
+    """
+    Extract content between consecutive headers.
+    
+    Args:
+        headers: List of header dicts from detect_headers()
+        content: Full SOP file content
+    
+    Returns:
+        Dict mapping section names to their content (stripped of leading/trailing whitespace)
+    """
+    sections = {}
+    
+    if not headers:
+        return sections
+    
+    # Get all lines as a list for efficient slicing
+    lines = content.split('\n')
+    
+    # Extract content between each pair of headers
+    prev_line = 0
+    
+    for i, header in enumerate(headers):
+        current_line = header['line_number']
+        
+        if i == 0:
+            # First section (before first header) - include from start to first header
+            section_content = '\n'.join(lines[0:current_line])
+        else:
+            # Content between previous header and current header
+            section_content = '\n'.join(lines[prev_line:current_line])
+        
+        # Use header text as section name (strip any leading/trailing whitespace)
+        section_name = header['text']
+        
+        sections[section_name] = section_content.strip()
+        
+        prev_line = current_line
+    
+    # Handle content after the last header
+    if headers:
